@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Sang-It Rental App",
+    "slug": "rental-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#C4C9A0"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sangit.rentalapp"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#C4C9A0"
+      }
+    }
+  }
+}
