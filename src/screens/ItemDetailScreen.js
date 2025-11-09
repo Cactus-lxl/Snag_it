@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   StatusBar,
   ScrollView,
+  Image,
 } from 'react-native';
 
 function getOwnerAndLocation(idOrName) {
@@ -38,7 +39,11 @@ export default function ItemDetailScreen({ navigation, route }) {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* Image placeholder */}
         <View style={styles.hero}>
-          <Text style={styles.heroEmoji}>📦</Text>
+          {item.image ? (
+            <Image source={item.image} style={styles.heroImage} resizeMode="cover" />
+          ) : (
+            <Text style={styles.heroEmoji}>📦</Text>
+          )}
         </View>
 
         {/* Main info */}
@@ -118,7 +123,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   hero: {
-    backgroundColor: '#F4A89F',
+    backgroundColor: '#F5F5F5',
     height: 220,
     borderRadius: 20,
     alignItems: 'center',
@@ -128,6 +133,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
+    overflow: 'hidden',
+  },
+  heroImage: {
+    width: '100%',
+    height: '100%',
   },
   heroEmoji: {
     fontSize: 56,

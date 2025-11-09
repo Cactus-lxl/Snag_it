@@ -9,13 +9,22 @@ import {
   TextInput,
   ScrollView,
   Animated,
-  Alert,
+  Image,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import tools from '../data/tool';
 
 export default function SellerDashboardScreen({ navigation }) {
   const [searchText, setSearchText] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
   const scrollRef = useRef(null);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(15)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const appBarAnim = useRef(new Animated.Value(0)).current;
+  const searchBarAnim = useRef(new Animated.Value(0)).current;
+  const metricsAnim = useRef(new Animated.Value(0)).current;
+  const searchScaleAnim = useRef(new Animated.Value(1)).current;
 
   // Drawer state
   const DRAWER_WIDTH = 280;
@@ -39,6 +48,61 @@ export default function SellerDashboardScreen({ navigation }) {
     }).start(() => setDrawerOpen(false));
   };
 
+  // Page entry animation
+  React.useEffect(() => {
+    Animated.sequence([
+      // App bar fades in first
+      Animated.timing(appBarAnim, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      // Search bar slides up
+      Animated.parallel([
+        Animated.timing(searchBarAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+
+    // Metric cards stagger in
+    Animated.stagger(75, [
+      Animated.timing(metricsAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  const handleSearchFocus = () => {
+    setSearchFocused(true);
+    Animated.spring(searchScaleAnim, {
+      toValue: 1.02,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handleSearchBlur = () => {
+    setSearchFocused(false);
+    Animated.spring(searchScaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
+  };
+
   const recentUploads = useMemo(() => {
     // Mock: last 6 items as recently uploaded
     return [...tools].slice(-6).reverse();
@@ -56,9 +120,9 @@ export default function SellerDashboardScreen({ navigation }) {
   }, []);
 
   const notifications = [
-    { id: 'n1', icon: '🔔', title: 'New message', detail: 'Alex asked about your Cordless Drill', time: '2m ago' },
-    { id: 'n2', icon: '✅', title: 'Listing approved', detail: 'Paint Sprayer is now live', time: '1h ago' },
-    { id: 'n3', icon: '💰', title: 'Payout processed', detail: '$84.00 sent to your bank', time: 'Yesterday' },
+    { id: 'n1', icon: 'checkmark-circle', iconColor: '#3FA268', title: 'New message', detail: 'Alex asked about your Cordless Drill', time: '2m ago' },
+    { id: 'n2', icon: 'checkmark-done-circle', iconColor: '#3FA268', title: 'Listing approved', detail: 'Paint Sprayer is now live', time: '1h ago' },
+    { id: 'n3', icon: 'cash', iconColor: '#6BAA38', title: 'Payout processed', detail: '$84.00 sent to your bank', time: 'Yesterday' },
   ];
 
   const renderUploadCard = (item) => {
@@ -67,22 +131,45 @@ export default function SellerDashboardScreen({ navigation }) {
     const priceUnit = String(item.price).match(/\/\w+/) ? String(item.price).match(/\/\w+/)[0] : '';
 
     return (
-      <TouchableOpacity
-        key={item.id}
-        style={styles.toolCard}
-        onPress={() => navigation.navigate('ItemRentals', { item })}
-      >
-        <View style={styles.toolImg}>
-          <Text style={styles.toolIcon}>🧰</Text>
-        </View>
-        <View style={styles.toolCardContent}>
-          <Text style={styles.toolName}>{item.name}</Text>
-          <View style={styles.priceContainer}>
-            <Text style={styles.originalPrice}>${originalPriceNum}{priceUnit}</Text>
-            <Text style={styles.currentPrice}>{item.price}</Text>
+      <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+        <TouchableOpacity
+          key={item.id}
+          style={styles.toolCard}
+          onPress={() => navigation.navigate('ItemRentals', { item })}
+          onPressIn={() => {
+            Animated.spring(scaleAnim, {
+              toValue: 0.97,
+              useNativeDriver: true,
+            }).start();
+          }}
+          onPressOut={() => {
+            Animated.spring(scaleAnim, {
+              toValue: 1,
+              useNativeDriver: true,
+            }).start();
+          }}
+          activeOpacity={0.9}
+        >
+          <View style={styles.toolImg}>
+            {item.image ? (
+              <Image 
+                source={item.image} 
+                style={styles.toolImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <Text style={styles.toolIcon}>🧰</Text>
+            )}
           </View>
-        </View>
-      </TouchableOpacity>
+          <View style={styles.toolCardContent}>
+            <Text style={styles.toolName}>{item.name}</Text>
+            <View style={styles.priceContainer}>
+              <Text style={styles.originalPrice}>${originalPriceNum}{priceUnit}</Text>
+              <Text style={styles.currentPrice}>{item.price}</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
     );
   };
 
@@ -101,50 +188,104 @@ export default function SellerDashboardScreen({ navigation }) {
   };
   const goSettings = () => {
     closeDrawer();
-    Alert.alert('Settings', 'Settings coming soon');
+    navigation.navigate('Settings');
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      {/* Search Bar */}
-      <View style={styles.searchBar}>
-        <TouchableOpacity onPress={openDrawer}>
-          <Text style={styles.menuIcon}>☰</Text>
-        </TouchableOpacity>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search your listings..."
-          placeholderTextColor="#6B6B6B"
-          value={searchText}
-          onChangeText={setSearchText}
-        />
-        <Text style={styles.searchIcon}>🔍</Text>
+      {/* Top Section with App Bar and Search */}
+      <View style={styles.topSection}>
+        {/* App Bar */}
+        <Animated.View style={[styles.appBar, { opacity: appBarAnim }]}>
+          <TouchableOpacity onPress={openDrawer} style={styles.menuButton}>
+            <Ionicons name="menu" size={24} color="#6B6B6B" />
+          </TouchableOpacity>
+          <View style={styles.appBarCenter}>
+            <Text style={styles.appBarTitle}>Dashboard</Text>
+            <Text style={styles.appBarSubtitle}>Welcome back, Seller 👋</Text>
+          </View>
+          <TouchableOpacity style={styles.avatarButton}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>S</Text>
+            </View>
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* Search Bar */}
+        <Animated.View 
+          style={[
+            styles.searchBarContainer, 
+            { 
+              opacity: searchBarAnim,
+              transform: [
+                { translateY: slideAnim },
+                { scale: searchScaleAnim }
+              ]
+            }
+          ]}
+        >
+          <View style={[
+            styles.searchBar,
+            searchFocused && styles.searchBarFocused
+          ]}>
+            <Ionicons name="search" size={20} color="#6B6B6B" style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search your listings..."
+              placeholderTextColor="#8A8A8A"
+              value={searchText}
+              onChangeText={setSearchText}
+              onFocus={handleSearchFocus}
+              onBlur={handleSearchBlur}
+            />
+          </View>
+        </Animated.View>
       </View>
 
-      <ScrollView ref={scrollRef} style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Stats Row */}
-        <View style={styles.statsRow}>
-          <View style={[styles.statCard, styles.earningsCard]}>
-            <Text style={styles.statLabel}>Total Made</Text>
+      <ScrollView 
+        ref={scrollRef} 
+        style={styles.scrollView} 
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Metrics Row - Now inside ScrollView */}
+        <Animated.View 
+          style={[
+            styles.statsRow, 
+            { 
+              opacity: metricsAnim,
+              transform: [{ translateY: Animated.multiply(metricsAnim, -15).interpolate({
+                inputRange: [0, 1],
+                outputRange: [15, 0]
+              })}]
+            }
+          ]}
+        >
+          <TouchableOpacity style={[styles.statCard, styles.earningsCard]} activeOpacity={0.8}>
+            <Ionicons name="cash-outline" size={24} color="#6BAA38" style={styles.statIcon} />
             <Text style={styles.statValue}>${stats.totalEarnings}</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Active Listings</Text>
+            <Text style={styles.statLabel}>Total Made</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.statCard} activeOpacity={0.8}>
+            <Ionicons name="cube-outline" size={24} color="#6BAA38" style={styles.statIcon} />
             <Text style={styles.statValue}>{stats.activeListings}</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Notifications</Text>
+            <Text style={styles.statLabel}>Active Listings</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.statCard} activeOpacity={0.8}>
+            <Ionicons name="notifications-outline" size={24} color="#6BAA38" style={styles.statIcon} />
             <Text style={styles.statValue}>{stats.notificationsCount}</Text>
-          </View>
-        </View>
+            <Text style={styles.statLabel}>Notifications</Text>
+          </TouchableOpacity>
+        </Animated.View>
 
         {/* Recent Uploads */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Recent uploads</Text>
-            <TouchableOpacity><Text style={styles.sectionAction}>View all</Text></TouchableOpacity>
+            <TouchableOpacity>
+              <Text style={styles.sectionAction}>View all</Text>
+            </TouchableOpacity>
           </View>
           <View style={styles.toolList}>
             {recentUploads.map((t) => (
@@ -162,14 +303,16 @@ export default function SellerDashboardScreen({ navigation }) {
           </View>
           <View style={styles.notificationsList}>
             {notifications.map((n) => (
-              <View key={n.id} style={styles.notificationItem}>
-                <Text style={styles.notificationIcon}>{n.icon}</Text>
+              <TouchableOpacity key={n.id} style={styles.notificationItem} activeOpacity={0.8}>
+                <View style={[styles.notificationIconContainer, { backgroundColor: `${n.iconColor}15` }]}>
+                  <Ionicons name={n.icon} size={22} color={n.iconColor} />
+                </View>
                 <View style={styles.notificationContent}>
                   <Text style={styles.notificationTitle}>{n.title}</Text>
                   <Text style={styles.notificationDetail}>{n.detail}</Text>
                 </View>
                 <Text style={styles.notificationTime}>{n.time}</Text>
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         </View>
@@ -182,19 +325,19 @@ export default function SellerDashboardScreen({ navigation }) {
           <Animated.View style={[styles.drawer, { transform: [{ translateX: drawerAnim }] }]}>
             <Text style={styles.drawerTitle}>Menu</Text>
             <TouchableOpacity style={styles.drawerItem} onPress={goAccount}>
-              <Text style={styles.drawerItemIcon}>👤</Text>
+              <Ionicons name="person-outline" size={20} color="#6BAA38" style={styles.drawerItemIcon} />
               <Text style={styles.drawerItemText}>Account</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.drawerItem} onPress={goWhatToBuy}>
-              <Text style={styles.drawerItemIcon}>🛍️</Text>
+              <Ionicons name="cart-outline" size={20} color="#6BAA38" style={styles.drawerItemIcon} />
               <Text style={styles.drawerItemText}>What to buy</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.drawerItem} onPress={goTopItems}>
-              <Text style={styles.drawerItemIcon}>⭐</Text>
+              <Ionicons name="star-outline" size={20} color="#6BAA38" style={styles.drawerItemIcon} />
               <Text style={styles.drawerItemText}>Top items</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.drawerItem} onPress={goSettings}>
-              <Text style={styles.drawerItemIcon}>⚙️</Text>
+              <Ionicons name="settings-outline" size={20} color="#6BAA38" style={styles.drawerItemIcon} />
               <Text style={styles.drawerItemText}>Settings</Text>
             </TouchableOpacity>
           </Animated.View>
@@ -207,92 +350,170 @@ export default function SellerDashboardScreen({ navigation }) {
         onPress={() => navigation.navigate('AddItem')}
         activeOpacity={0.85}
       >
-        <Text style={styles.fabIcon}>+</Text>
+        <Ionicons name="add" size={28} color="#FFFFFF" />
       </TouchableOpacity>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  // Base layout — matching buyer dashboard palette and spacing
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F3',
+    backgroundColor: '#F9F9F6',
+  },
+  topSection: {
+    backgroundColor: '#F9FAF7',
+    paddingHorizontal: 24,
+    paddingTop: 8,
+    paddingBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 3,
+    zIndex: 1,
   },
   scrollView: {
     flex: 1,
+    zIndex: 0,
+  },
+  
+  // App Bar
+  appBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    height: 56,
+    marginBottom: 8,
+  },
+  menuButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  appBarCenter: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  appBarTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#1A1A1A',
+    fontFamily: 'System',
+  },
+  appBarSubtitle: {
+    fontSize: 13,
+    color: '#6B6B6B',
+    fontWeight: '400',
+    marginTop: 2,
+  },
+  avatarButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#C4C9A0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1A1A1A',
+  },
+
+  // Search Bar
+  searchBarContainer: {
+    marginBottom: 0,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
-    marginHorizontal: 20,
-    marginVertical: 15,
-    paddingHorizontal: 20,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
     paddingVertical: 12,
-    borderRadius: 30,
+    borderRadius: 22,
+    height: 44,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
     shadowRadius: 8,
-    elevation: 3,
+    elevation: 2,
   },
-  menuIcon: {
-    fontSize: 24,
-    color: '#6B6B6B',
-    marginRight: 15,
+  searchBarFocused: {
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  searchIcon: {
+    marginRight: 10,
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15,
     color: '#1A1A1A',
-  },
-  searchIcon: {
-    fontSize: 20,
-    color: '#6B6B6B',
+    fontWeight: '400',
   },
 
   // Stats
   statsRow: {
     flexDirection: 'row',
     gap: 12,
-    marginHorizontal: 20,
-    marginTop: 5,
-    marginBottom: 20,
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 8,
+    backgroundColor: '#F9F9F6',
   },
   statCard: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#F8F8F8',
     borderRadius: 16,
-    padding: 16,
+    padding: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    height: 90,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.06,
     shadowRadius: 8,
-    elevation: 3,
+    elevation: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   earningsCard: {
-    backgroundColor: '#C4C9A0',
+    backgroundColor: '#E9EFD9',
   },
-  statLabel: {
-    fontSize: 12,
-    color: '#4B4B4B',
+  statIcon: {
     marginBottom: 6,
-    fontWeight: '600',
   },
   statValue: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '600',
     color: '#1A1A1A',
+    fontFamily: 'System',
+    marginBottom: 2,
+  },
+  statLabel: {
+    fontSize: 14,
+    color: '#6B6B6B',
+    fontWeight: '400',
+    textAlign: 'center',
   },
 
   // Sections
   section: {
-    marginBottom: 20,
+    marginBottom: 32,
+    marginTop: 24,
   },
   sectionHeader: {
-    marginHorizontal: 20,
-    marginBottom: 12,
+    marginHorizontal: 24,
+    marginBottom: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -301,106 +522,123 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#1A1A1A',
+    fontFamily: 'System',
   },
   sectionAction: {
-    fontSize: 14,
-    color: '#1A1A1A',
-    opacity: 0.7,
-    fontWeight: '600',
+    fontSize: 15,
+    color: '#6BAA38',
+    fontWeight: '500',
   },
 
-  // Tool cards (reuse buyer look)
+  // Tool cards
   toolList: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingBottom: 10,
-    gap: 15,
+    gap: 12,
   },
   toolCardWrapper: {
-    width: '47%',
+    width: '47.5%',
   },
   toolCard: {
-    backgroundColor: 'white',
-    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 3,
   },
   toolImg: {
-    backgroundColor: '#F4A89F',
-    height: 140,
+    backgroundColor: '#E7EBD2',
+    height: 100,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  toolImage: {
+    width: '100%',
+    height: '100%',
   },
   toolIcon: {
-    fontSize: 48,
+    fontSize: 40,
   },
   toolCardContent: {
-    padding: 15,
+    padding: 14,
   },
   toolName: {
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 8,
     color: '#1A1A1A',
+    fontFamily: 'System',
   },
   priceContainer: {
     gap: 4,
   },
   originalPrice: {
     fontSize: 14,
-    color: '#6B6B6B',
+    color: '#9B9B9B',
     textDecorationLine: 'line-through',
+    fontWeight: '400',
   },
   currentPrice: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1A1A1A',
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6BAA38',
   },
 
   // Notifications
   notificationsList: {
     backgroundColor: 'transparent',
-    marginHorizontal: 20,
+    marginHorizontal: 24,
     gap: 12,
     marginBottom: 24,
   },
   notificationItem: {
-    backgroundColor: 'white',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 14,
+    padding: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.04,
     shadowRadius: 8,
-    elevation: 3,
+    elevation: 2,
   },
-  notificationIcon: {
-    fontSize: 22,
+  notificationIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   notificationContent: {
     flex: 1,
   },
   notificationTitle: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '600',
     color: '#1A1A1A',
-    marginBottom: 2,
+    marginBottom: 4,
+    fontFamily: 'System',
   },
   notificationDetail: {
-    fontSize: 13,
-    color: '#4B4B4B',
+    fontSize: 14,
+    color: '#6B6B6B',
+    fontWeight: '400',
+    lineHeight: 19.6,
   },
   notificationTime: {
     fontSize: 12,
-    color: '#6B6B6B',
+    color: '#A0A0A0',
+    fontWeight: '400',
   },
 
   // Drawer styles
@@ -426,9 +664,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     width: 280,
-    backgroundColor: 'white',
-    paddingTop: 30,
-    paddingHorizontal: 18,
+    backgroundColor: '#FFFFFF',
+    paddingTop: 60,
+    paddingHorizontal: 20,
     shadowColor: '#000',
     shadowOffset: { width: 2, height: 0 },
     shadowOpacity: 0.15,
@@ -436,47 +674,43 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   drawerTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '700',
     color: '#1A1A1A',
-    marginBottom: 16,
+    marginBottom: 24,
+    fontFamily: 'System',
   },
   drawerItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#eee',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.06)',
   },
   drawerItemIcon: {
-    fontSize: 20,
-    width: 28,
+    marginRight: 16,
   },
   drawerItemText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#1A1A1A',
   },
 
   // Floating Action Button
   fab: {
     position: 'absolute',
-    right: 20,
-    bottom: 28,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#C4C9A0',
+    right: 24,
+    bottom: 24,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#6BAA38',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.16,
-    shadowRadius: 10,
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
     elevation: 6,
-  },
-  fabIcon: {
-    fontSize: 28,
-    lineHeight: 28,
   },
 });

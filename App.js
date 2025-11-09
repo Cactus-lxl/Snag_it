@@ -12,6 +12,7 @@ import CategoryScreen from './src/screens/CategoryScreen';
 import ItemDetailScreen from './src/screens/ItemDetailScreen';
 import AddItemScreen from './src/screens/AddItemScreen';
 import ItemRentalsScreen from './src/screens/ItemRentalsScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
 import { UserProvider } from './src/context/UserContext';
 
 const Stack = createNativeStackNavigator();
@@ -32,6 +33,7 @@ export default function App() {
           <Stack.Screen name="Dashboard" component={DashboardScreen} />
           <Stack.Screen name="SellerDashboard" component={SellerDashboardScreen} />
           <Stack.Screen name="Account" component={AccountScreen} />
+          <Stack.Screen name="Settings" component={SettingsScreen} />
           <Stack.Screen name="Category" component={CategoryScreen} />
           <Stack.Screen name="ItemDetail" component={ItemDetailScreen} />
           <Stack.Screen name="AddItem" component={AddItemScreen} />

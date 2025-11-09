@@ -10,6 +10,7 @@ import {
   ScrollView,
   Animated,
   Alert,
+  Image,
 } from 'react-native';
 import tools from '../data/tool';
 
@@ -17,6 +18,8 @@ export default function DashboardScreen({ navigation, route }) {
   const [tab, setTab] = useState('Rent');
   const [searchText, setSearchText] = useState('');
   const scrollRef = useRef(null);
+  const topItemsRef = useRef(null); // Add ref for top items section
+  const [topItemsPosition, setTopItemsPosition] = useState(0); // Store position
 
   useEffect(() => {
     const initialTab = route?.params?.initialTab;
@@ -69,7 +72,15 @@ export default function DashboardScreen({ navigation, route }) {
         onPress={() => navigation.navigate('ItemDetail', { item })}
       >
         <View style={styles.toolImg}>
-          <Text style={styles.toolIcon}>🔧</Text>
+          {item.image ? (
+            <Image 
+              source={item.image} 
+              style={styles.toolImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <Text style={styles.toolIcon}>🔧</Text>
+          )}
         </View>
         <View style={styles.toolCardContent}>
           <Text style={styles.toolName}>{item.name}</Text>
@@ -93,12 +104,15 @@ export default function DashboardScreen({ navigation, route }) {
     closeDrawer();
   };
   const goTopItems = () => {
-    if (scrollRef.current) scrollRef.current.scrollTo({ y: 0, animated: true });
     closeDrawer();
+    // Scroll to the top items section using measured position
+    if (scrollRef.current && topItemsPosition > 0) {
+      scrollRef.current.scrollTo({ y: topItemsPosition - 20, animated: true });
+    }
   };
   const goSettings = () => {
     closeDrawer();
-    Alert.alert('Settings', 'Settings coming soon');
+    navigation.navigate('Settings');
   };
 
   return (
@@ -155,13 +169,21 @@ export default function DashboardScreen({ navigation, route }) {
         </View>
 
         {/* Tools List */}
-        <Text style={styles.toolListHeader}>Top items near you</Text>
-        <View style={styles.toolList}>
-          {filteredTools.map((tool) => (
-            <View key={tool.id} style={styles.toolCardWrapper}>
-              {renderToolCard({ item: tool })}
-            </View>
-          ))}
+        <View 
+          ref={topItemsRef}
+          onLayout={(event) => {
+            const { y } = event.nativeEvent.layout;
+            setTopItemsPosition(y);
+          }}
+        >
+          <Text style={styles.toolListHeader}>Top items near you</Text>
+          <View style={styles.toolList}>
+            {filteredTools.map((tool) => (
+              <View key={tool.id} style={styles.toolCardWrapper}>
+                {renderToolCard({ item: tool })}
+              </View>
+            ))}
+          </View>
         </View>
       </ScrollView>
 
@@ -197,172 +219,193 @@ export default function DashboardScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F3',
+    backgroundColor: '#FAFAF8', // offWhite - cleaner, more modern background
   },
   scrollView: {
     flex: 1,
   },
+  // Search Bar - 52px height, 24px horizontal padding
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
-    marginHorizontal: 20,
-    marginVertical: 15,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 30,
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 24, // 8-point grid: lg spacing
+    marginTop: 16,
+    marginBottom: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    height: 52,
+    borderRadius: 12, // input radius from design system
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 6,
   },
   menuIcon: {
     fontSize: 24,
-    color: '#6B6B6B',
-    marginRight: 15,
+    color: '#1A1A1A', // textDark
+    marginRight: 12,
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 16, // body font size
     color: '#1A1A1A',
+    letterSpacing: 0.4,
   },
   searchIcon: {
     fontSize: 20,
-    color: '#6B6B6B',
+    color: '#6B6B6B', // textMuted
   },
+  // Toggle Tabs - following button specs
   toggleTabs: {
     flexDirection: 'row',
-    backgroundColor: '#E8E8E8',
-    borderRadius: 35,
-    marginHorizontal: 20,
-    marginBottom: 25,
+    backgroundColor: '#FFFFFF', // white for better contrast
+    borderRadius: 24, // button radius
+    marginHorizontal: 24,
+    marginBottom: 32, // xl spacing between sections
     padding: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 6,
   },
   tabButton: {
     flex: 1,
     paddingVertical: 12,
     paddingHorizontal: 24,
-    borderRadius: 30,
+    borderRadius: 24,
     alignItems: 'center',
+    minHeight: 44, // accessibility min hit area
   },
   tabButtonActive: {
-    backgroundColor: '#C4C9A0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    backgroundColor: '#6BAA38', // primary green
+    shadowColor: '#6BAA38',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
   },
   tabText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#6B6B6B',
+    fontSize: 16, // button font size
+    fontWeight: '600', // semiBold
+    color: '#6B6B6B', // textMuted
+    letterSpacing: 0.4,
   },
   tabTextActive: {
-    color: '#1A1A1A',
+    color: '#FFFFFF', // white text on primary button
   },
+  // Categories Section - H2 typography + proper spacing
   categoriesSection: {
-    marginHorizontal: 20,
-    marginBottom: 30,
+    marginHorizontal: 24, // lg padding
+    marginBottom: 40, // xxl spacing between main sections
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 15,
-    color: '#1A1A1A',
+    fontSize: 20, // H2 font size
+    fontWeight: '600', // semiBold
+    marginBottom: 16, // md spacing
+    color: '#1A1A1A', // textDark
+    letterSpacing: 0.4,
   },
   categoriesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 15,
+    gap: 16, // md spacing
   },
+  // Category Cards - following card specs
   categoryCard: {
-    backgroundColor: '#C4C9A0',
-    padding: 30,
-    borderRadius: 20,
+    backgroundColor: '#FFFFFF', // white cards
+    padding: 20, // card padding from design system
+    borderRadius: 16, // card radius
     width: '47%',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+    minHeight: 120, // ensure good proportions
   },
   categoryIcon: {
     fontSize: 40,
-    marginBottom: 12,
+    marginBottom: 12, // sm spacing
   },
   categoryName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1A1A1A',
+    fontSize: 16, // body font size
+    fontWeight: '600', // semiBold
+    color: '#1A1A1A', // textDark
+    letterSpacing: 0.4,
   },
+  // Tool List Header - H2 typography
   toolListHeader: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginHorizontal: 20,
-    marginBottom: 20,
-    color: '#1A1A1A',
+    fontSize: 20, // H2
+    fontWeight: '600', // semiBold
+    marginHorizontal: 24,
+    marginBottom: 16, // md spacing
+    color: '#1A1A1A', // textDark
+    letterSpacing: 0.4,
   },
   toolList: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    gap: 15,
+    paddingHorizontal: 24, // lg padding
+    paddingBottom: 24,
+    gap: 16, // md spacing between cards
   },
   toolCardWrapper: {
     width: '47%',
   },
+  // Tool Cards - following card design system
   toolCard: {
-    backgroundColor: 'white',
-    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16, // card radius
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
   },
   toolImg: {
-    backgroundColor: '#F4A89F',
+    backgroundColor: '#F5F5F5', // neutral background for images
     height: 140,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  toolImage: {
+    width: '100%',
+    height: '100%',
   },
   toolIcon: {
     fontSize: 48,
   },
   toolCardContent: {
-    padding: 15,
+    padding: 16, // md padding for card content
   },
   toolName: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-    color: '#1A1A1A',
+    fontSize: 16, // body font size
+    fontWeight: '600', // semiBold
+    marginBottom: 8, // xs spacing
+    color: '#1A1A1A', // textDark
+    letterSpacing: 0.4,
   },
   priceContainer: {
     gap: 4,
   },
   originalPrice: {
-    fontSize: 14,
-    color: '#6B6B6B',
+    fontSize: 13, // caption size
+    color: '#6B6B6B', // textMuted
     textDecorationLine: 'line-through',
   },
   currentPrice: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#1A1A1A',
+    fontWeight: '700', // bold
+    color: '#6BAA38', // primary green for emphasis
   },
 
-  // Drawer styles
+  // Drawer styles - updated with design system
   drawerOverlay: {
     position: 'absolute',
     top: 0,
@@ -377,7 +420,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(0,0,0,0.25)',
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
   drawer: {
     position: 'absolute',
@@ -385,9 +428,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     width: 280,
-    backgroundColor: 'white',
-    paddingTop: 30,
-    paddingHorizontal: 18,
+    backgroundColor: '#FFFFFF',
+    paddingTop: 40,
+    paddingHorizontal: 24, // lg padding
     shadowColor: '#000',
     shadowOffset: { width: 2, height: 0 },
     shadowOpacity: 0.15,
@@ -395,25 +438,29 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   drawerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    marginBottom: 16,
+    fontSize: 20, // H2
+    fontWeight: '600', // semiBold
+    color: '#1A1A1A', // textDark
+    marginBottom: 24, // lg spacing
+    letterSpacing: 0.4,
   },
   drawerItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#eee',
+    paddingVertical: 16, // md spacing
+    minHeight: 44, // accessibility hit area
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(16,16,16,0.08)', // divider color
   },
   drawerItemIcon: {
-    fontSize: 20,
-    width: 28,
+    fontSize: 24, // icon size from design system
+    width: 32,
+    marginRight: 8, // icon-text spacing
   },
   drawerItemText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1A1A1A',
+    fontSize: 16, // body size
+    fontWeight: '600', // semiBold
+    color: '#1A1A1A', // textDark
+    letterSpacing: 0.4,
   },
 });

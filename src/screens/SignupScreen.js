@@ -7,45 +7,73 @@ import {
   SafeAreaView,
   StatusBar,
   Image,
+  ScrollView,
+  Pressable,
 } from 'react-native';
+
+const COLORS = {
+  bg: '#C8CEA4',          // soft sage
+  text: '#101010',
+  textMuted: '#4A4A4A',
+  card: 'rgba(255,255,255,0.96)',
+  line: 'rgba(16,16,16,0.08)',
+  accent: '#6BAA38',      // fresh green accent
+};
 
 export default function SignupScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      
-      {/* Replaced profile icon with hero image */}
-      {/* <View style={styles.profileIcon} /> */}
-      
-      <View style={styles.header}>
-        {/* Replace title with image */}
-        <Image source={require('../../assets/1.png')} style={styles.heroImage} />
-        <Text style={styles.subtitle}>Hey! ready to rent some items?</Text>
-        <Text style={styles.paragraph}>Sign up as a</Text>
-      </View>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        bounces={false}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Brand / Hero */}
+        <View style={styles.hero}>
+          <Image source={require('../../assets/1.png')} style={styles.heroImage} />
+          <Text style={styles.headline}>Hey! Ready to rent some items?</Text>
+          <Text style={styles.subhead}>Sign up as a</Text>
+        </View>
 
-      <View style={styles.buttonsContainer}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('SignupForm', { role: 'renter' })}
-        >
-          <Text style={styles.buttonText}>🏠 BUYER</Text>
-        </TouchableOpacity>
+        {/* Buttons */}
+        <View style={styles.buttons}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.button,
+              pressed && styles.buttonPressed,
+            ]}
+            onPress={() => navigation.navigate('SignupForm', { role: 'renter' })}
+            android_ripple={{ color: COLORS.line }}
+          >
+            <Text style={styles.buttonText}>🏠  BUYER</Text>
+          </Pressable>
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('SignupForm', { role: 'rentee' })}
-        >
-          <Text style={styles.buttonText}>🛒 SELLER</Text>
-        </TouchableOpacity>
+          <Pressable
+            style={({ pressed }) => [
+              styles.button,
+              pressed && styles.buttonPressed,
+            ]}
+            onPress={() => navigation.navigate('SignupForm', { role: 'rentee' })}
+            android_ripple={{ color: COLORS.line }}
+          >
+            <Text style={styles.buttonText}>🛒  SELLER</Text>
+          </Pressable>
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('Signin')}
-        >
-          <Text style={styles.buttonText}>👤 Sign in</Text>
-        </TouchableOpacity>
-      </View>
+          <View style={styles.separator}>
+            <View style={styles.line} />
+            <Text style={styles.sepText}>or</Text>
+            <View style={styles.line} />
+          </View>
+
+          <TouchableOpacity onPress={() => navigation.navigate('Signin')}>
+            <Text style={styles.link}>Already have an account? <Text style={styles.linkStrong}>Sign in</Text></Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Footer microcopy */}
+        <Text style={styles.footerNote}>By continuing, you agree to Snag-It's Terms & Privacy.</Text>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -53,77 +81,103 @@ export default function SignupScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#C4C9A0',
-    paddingHorizontal: 30,
-    paddingTop: 60,
-    paddingBottom: 40,
+    backgroundColor: COLORS.bg,
+  },
+  content: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 32,
     justifyContent: 'space-between',
   },
-  profileIcon: {
-    position: 'absolute',
-    top: 60,
-    right: 40,
-    width: 120,
-    height: 120,
-    backgroundColor: '#FAF8F3',
-    borderRadius: 60,
-    borderWidth: 4,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  header: {
+  // Hero section
+  hero: {
     alignItems: 'center',
-    marginTop: 180,
+    marginTop: 40,
   },
   heroImage: {
-    width: 220,
-    height: 220,
+    width: '80%',
+    height: 140,
     resizeMode: 'contain',
-    marginBottom: 16,
+    marginBottom: 24,
   },
-  title: {
-    fontSize: 72,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    marginBottom: 20,
-    letterSpacing: -2,
-  },
-  subtitle: {
-    fontSize: 20,
-    color: '#1A1A1A',
+  headline: {
+    fontSize: 24,
+    lineHeight: 30,
     textAlign: 'center',
-    lineHeight: 32,
-    maxWidth: 400,
+    color: COLORS.text,
+    fontWeight: '700',
+    marginBottom: 8,
+    paddingHorizontal: 8,
   },
-  paragraph: {
-    fontSize: 16,
-    color: '#1A1A1A',
-    marginTop: 6,
+  subhead: {
+    fontSize: 18,
+    color: COLORS.textMuted,
+    textAlign: 'center',
+    marginTop: 8,
   },
-  buttonsContainer: {
-    width: '100%',
-    gap: 20,
+  // Buttons section
+  buttons: {
+    marginTop: 20,
   },
   button: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: COLORS.card,
     paddingVertical: 18,
-    paddingHorizontal: 40,
-    borderRadius: 35,
+    paddingHorizontal: 24,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.10,
     shadowRadius: 8,
     elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.6)',
+  },
+  buttonPressed: {
+    transform: [{ scale: 0.98 }],
+    opacity: 0.95,
   },
   buttonText: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#1A1A1A',
+    fontWeight: '700',
+    color: COLORS.text,
+    letterSpacing: 0.4,
+  },
+  // Separator
+  separator: {
+    marginVertical: 12,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  line: {
+    flex: 1,
+    height: 1,
+    backgroundColor: COLORS.line,
+  },
+  sepText: {
+    color: COLORS.textMuted,
+    fontSize: 14,
+  },
+  link: {
+    marginTop: 12,
+    textAlign: 'center',
+    color: COLORS.textMuted,
+    fontSize: 15,
+  },
+  linkStrong: {
+    color: COLORS.accent,
+    fontWeight: '700',
+  },
+  // Footer
+  footerNote: {
+    textAlign: 'center',
+    color: 'rgba(16,16,16,0.55)',
+    fontSize: 12,
+    marginTop: 20,
   },
 });

@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   StatusBar,
   ScrollView,
+  Image,
 } from 'react-native';
 import { categoryItems, getCategoryIcon } from '../data/categories';
 
@@ -33,7 +34,13 @@ export default function CategoryScreen({ navigation, route }) {
         <View style={styles.grid}>
           {items.map((item) => (
             <TouchableOpacity key={item.id} style={styles.card} onPress={() => navigation.navigate('ItemDetail', { item })}>
-              <View style={styles.cardImg}><Text style={styles.cardIcon}>📦</Text></View>
+              <View style={styles.cardImg}>
+                {item.image ? (
+                  <Image source={item.image} style={styles.cardImage} resizeMode="cover" />
+                ) : (
+                  <Text style={styles.cardIcon}>📦</Text>
+                )}
+              </View>
               <View style={styles.cardBody}>
                 <Text style={styles.cardName}>{item.name}</Text>
                 <Text style={styles.cardPrice}>{item.price}</Text>
@@ -107,10 +114,15 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   cardImg: {
-    backgroundColor: '#F4A89F',
+    backgroundColor: '#F5F5F5',
     height: 120,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  cardImage: {
+    width: '100%',
+    height: '100%',
   },
   cardIcon: {
     fontSize: 36,
