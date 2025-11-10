@@ -13,6 +13,8 @@ import {
   Image,
 } from 'react-native';
 import tools from '../data/tool';
+import FloatingActionButton from '../components/FloatingActionButton';
+import SellerPromptBanner from '../components/SellerPromptBanner';
 
 export default function DashboardScreen({ navigation, route }) {
   const [tab, setTab] = useState('Rent');
@@ -96,7 +98,7 @@ export default function DashboardScreen({ navigation, route }) {
   // Drawer item handlers
   const goAccount = () => {
     closeDrawer();
-    navigation.navigate('Account');
+    navigation.navigate('Main', { screen: 'Profile' });
   };
   const goWhatToBuy = () => {
     setTab('Buy');
@@ -155,6 +157,9 @@ export default function DashboardScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
 
+        {/* Seller Prompt Banner */}
+        <SellerPromptBanner navigation={navigation} />
+
         {/* Categories Section */}
         <View style={styles.categoriesSection}>
           <Text style={styles.sectionTitle}>Categories</Text>
@@ -212,6 +217,9 @@ export default function DashboardScreen({ navigation, route }) {
           </Animated.View>
         </View>
       )}
+
+      {/* Floating Action Button */}
+      <FloatingActionButton navigation={navigation} />
     </SafeAreaView>
   );
 }

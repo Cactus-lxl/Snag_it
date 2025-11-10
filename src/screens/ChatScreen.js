@@ -14,8 +14,9 @@ import {
 import tools from '../data/tool';
 
 export default function ChatScreen({ navigation, route }) {
-  const { toolId } = route.params;
-  const tool = tools.find((t) => t.id === Number(toolId));
+  // Handle both tab navigation (no params) and direct navigation (with toolId)
+  const toolId = route.params?.toolId;
+  const tool = toolId ? tools.find((t) => t.id === Number(toolId)) : null;
 
   const [messages, setMessages] = useState([
     { sender: 'user', text: 'Hi! Can I rent this tomorrow?', time: '10:30 AM' },
@@ -51,6 +52,31 @@ export default function ChatScreen({ navigation, route }) {
       }, 1500);
     }
   };
+
+  // Show chat list when accessed from tab navigation (no toolId)
+  if (!toolId) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" />
+        
+        <View style={styles.header}>
+          <Text style={styles.title}>Messages</Text>
+        </View>
+
+        <ScrollView style={styles.chatList}>
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyIcon}>💬</Text>
+            <Text style={styles.emptyTitle}>No messages yet</Text>
+            <Text style={styles.emptyText}>
+              Start browsing items and chat with owners to rent what you need
+            </Text>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+  // Show individual chat when navigated with toolId
 
   return (
     <SafeAreaView style={styles.container}>
@@ -267,5 +293,43 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: 'white',
+  },
+  header: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E6E6E6',
+    backgroundColor: 'white',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#1A1A1A',
+  },
+  chatList: {
+    flex: 1,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 80,
+    paddingHorizontal: 40,
+  },
+  emptyIcon: {
+    fontSize: 64,
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptyText: {
+    fontSize: 15,
+    color: '#6B6B6B',
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });

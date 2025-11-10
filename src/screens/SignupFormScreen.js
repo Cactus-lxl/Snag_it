@@ -29,11 +29,7 @@ export default function SignupFormScreen({ navigation, route }) {
   const onSubmit = () => {
     // Simple mock submit and set user context
     setUser({ name, role });
-    if (role === 'rentee') {
-      navigation.reset({ index: 0, routes: [{ name: 'SellerDashboard' }] });
-    } else {
-      navigation.reset({ index: 0, routes: [{ name: 'Dashboard' }] });
-    }
+    navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
   };
 
   return (

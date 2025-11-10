@@ -20,7 +20,7 @@ export default function SigninScreen({ navigation }) {
     // Mock sign-in: derive a name from email
     const name = email?.split('@')[0] || 'User';
     setUser({ name, role: 'renter' });
-    navigation.reset({ index: 0, routes: [{ name: 'Dashboard' }] });
+    navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
   };
 
   return (

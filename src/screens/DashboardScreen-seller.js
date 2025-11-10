@@ -176,11 +176,11 @@ export default function SellerDashboardScreen({ navigation }) {
   // Drawer item handlers
   const goAccount = () => {
     closeDrawer();
-    navigation.navigate('Account');
+    navigation.navigate('Main', { screen: 'Profile' });
   };
   const goWhatToBuy = () => {
     closeDrawer();
-    navigation.navigate('Dashboard', { initialTab: 'Buy' });
+    navigation.navigate('Main');
   };
   const goTopItems = () => {
     if (scrollRef.current) scrollRef.current.scrollTo({ y: 0, animated: true });
@@ -244,40 +244,43 @@ export default function SellerDashboardScreen({ navigation }) {
         </Animated.View>
       </View>
 
+      {/* Metrics Row - Fixed at top, outside ScrollView */}
+      <Animated.View 
+        style={[
+          styles.statsRow, 
+          { 
+            opacity: metricsAnim,
+            transform: [{ 
+              translateY: metricsAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [15, 0]
+              })
+            }]
+          }
+        ]}
+      >
+        <TouchableOpacity style={[styles.statCard, styles.earningsCard]} activeOpacity={0.8}>
+          <Ionicons name="cash-outline" size={24} color="#6BAA38" style={styles.statIcon} />
+          <Text style={styles.statValue}>${stats.totalEarnings}</Text>
+          <Text style={styles.statLabel}>Total Made</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.statCard} activeOpacity={0.8}>
+          <Ionicons name="cube-outline" size={24} color="#6BAA38" style={styles.statIcon} />
+          <Text style={styles.statValue}>{stats.activeListings}</Text>
+          <Text style={styles.statLabel}>Active Listings</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.statCard} activeOpacity={0.8}>
+          <Ionicons name="notifications-outline" size={24} color="#6BAA38" style={styles.statIcon} />
+          <Text style={styles.statValue}>{stats.notificationsCount}</Text>
+          <Text style={styles.statLabel}>Notifications</Text>
+        </TouchableOpacity>
+      </Animated.View>
+
       <ScrollView 
         ref={scrollRef} 
         style={styles.scrollView} 
         showsVerticalScrollIndicator={false}
       >
-        {/* Metrics Row - Now inside ScrollView */}
-        <Animated.View 
-          style={[
-            styles.statsRow, 
-            { 
-              opacity: metricsAnim,
-              transform: [{ translateY: Animated.multiply(metricsAnim, -15).interpolate({
-                inputRange: [0, 1],
-                outputRange: [15, 0]
-              })}]
-            }
-          ]}
-        >
-          <TouchableOpacity style={[styles.statCard, styles.earningsCard]} activeOpacity={0.8}>
-            <Ionicons name="cash-outline" size={24} color="#6BAA38" style={styles.statIcon} />
-            <Text style={styles.statValue}>${stats.totalEarnings}</Text>
-            <Text style={styles.statLabel}>Total Made</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.statCard} activeOpacity={0.8}>
-            <Ionicons name="cube-outline" size={24} color="#6BAA38" style={styles.statIcon} />
-            <Text style={styles.statValue}>{stats.activeListings}</Text>
-            <Text style={styles.statLabel}>Active Listings</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.statCard} activeOpacity={0.8}>
-            <Ionicons name="notifications-outline" size={24} color="#6BAA38" style={styles.statIcon} />
-            <Text style={styles.statValue}>{stats.notificationsCount}</Text>
-            <Text style={styles.statLabel}>Notifications</Text>
-          </TouchableOpacity>
-        </Animated.View>
 
         {/* Recent Uploads */}
         <View style={styles.section}>
@@ -467,42 +470,42 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 24,
     paddingTop: 20,
-    paddingBottom: 8,
-    backgroundColor: '#F9F9F6',
+    paddingBottom: 16,
+    backgroundColor: 'transparent',
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#F8F8F8',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 14,
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    height: 90,
+    padding: 16,
+    minHeight: 110,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.08,
     shadowRadius: 8,
-    elevation: 2,
+    elevation: 3,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.04)',
   },
   earningsCard: {
-    backgroundColor: '#E9EFD9',
+    backgroundColor: '#F0F7E8',
+    borderColor: 'rgba(107, 170, 56, 0.15)',
   },
   statIcon: {
-    marginBottom: 6,
+    marginBottom: 8,
   },
   statValue: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#1A1A1A',
-    fontFamily: 'System',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   statLabel: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6B6B6B',
-    fontWeight: '400',
+    fontWeight: '500',
     textAlign: 'center',
   },
 

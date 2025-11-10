@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,9 @@ import {
   ScrollView,
   Image,
 } from 'react-native';
+import DateRangePickerSheet from '../components/booking/DateRangePickerSheet';
+import { parsePrice, computeTotal } from '../utils/priceCalculator';
+import { generateUnavailableDates } from '../utils/dateUtils';
 
 function getOwnerAndLocation(idOrName) {
   const owners = ['Alex Johnson', 'Sam Rivera', 'Priya Mehta', 'Chris Lee', 'Jordan Kim', 'Taylor Brown'];
@@ -22,6 +25,43 @@ function getOwnerAndLocation(idOrName) {
 export default function ItemDetailScreen({ navigation, route }) {
   const item = route?.params?.item || { name: 'Item', price: '$0', id: 'x' };
   const { owner, location } = useMemo(() => getOwnerAndLocation(item.id || item.name), [item]);
+  
+  const [datePickerVisible, setDatePickerVisible] = useState(false);
+  const [selectedDates, setSelectedDates] = useState({});
+
+  // Mock unavailable dates (simulating already booked dates)
+  const unavailableDates = useMemo(() => {
+    // Example: Block out some dates
+    const mockUnavailable = [
+      { start: '2025-11-15', end: '2025-11-18' },
+      { start: '2025-11-25', end: '2025-11-27' },
+    ];
+    return generateUnavailableDates(mockUnavailable);
+  }, []);
+
+  // Parse price to extract numeric value and unit
+  const { value: priceValue, unit: priceUnit } = useMemo(() => {
+    return parsePrice(item.price);
+  }, [item.price]);
+
+  const handleDateConfirm = (range) => {
+    setSelectedDates(range);
+    setDatePickerVisible(false);
+    
+    // Calculate price breakdown
+    const breakdown = computeTotal(priceValue, priceUnit, range.start, range.end);
+    
+    // Navigate to review booking screen
+    navigation.navigate('ReviewBooking', {
+      item: {
+        ...item,
+        pricePerUnit: priceValue,
+        unit: priceUnit,
+      },
+      dateRange: range,
+      priceBreakdown: breakdown,
+    });
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -70,7 +110,7 @@ export default function ItemDetailScreen({ navigation, route }) {
         </View>
 
         {/* Actions */}
-        <TouchableOpacity style={styles.primaryBtn} onPress={() => {}}>
+        <TouchableOpacity style={styles.primaryBtn} onPress={() => setDatePickerVisible(true)}>
           <Text style={styles.primaryText}>Rent this item</Text>
         </TouchableOpacity>
 
@@ -78,6 +118,15 @@ export default function ItemDetailScreen({ navigation, route }) {
           <Text style={styles.secondaryText}>Message owner</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Date Range Picker Modal */}
+      <DateRangePickerSheet
+        visible={datePickerVisible}
+        onClose={() => setDatePickerVisible(false)}
+        onConfirm={handleDateConfirm}
+        unavailableDates={unavailableDates}
+        initialRange={selectedDates}
+      />
     </SafeAreaView>
   );
 }
