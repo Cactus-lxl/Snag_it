@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "Sang-It Rental App",
+    "slug": "rental-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#C4C9A0"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sangit.rentalapp",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow Sang-It to access your camera to take photos of items you want to rent out.",
+        "NSPhotoLibraryUsageDescription": "Allow Sang-It to access your photos to upload images of your rental items."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#C4C9A0"
+      },
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_MEDIA_IMAGES"
+      ]
+    }
+  }
+}
