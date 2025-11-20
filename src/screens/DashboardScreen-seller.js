@@ -224,7 +224,7 @@ export default function SellerDashboardScreen({ navigation }) {
           <TouchableOpacity
               key={item.id}
               style={styles.toolCard}
-              onPress={() => navigation.navigate('ItemDetail', { item })}
+              onPress={() => navigation.navigate('ItemAnalytics', { item })}
               onPressIn={() => {
                 Animated.spring(scaleAnim, {
                   toValue: 0.97,

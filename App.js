@@ -20,6 +20,7 @@ import YourItemsScreen from './src/screens/YourItemsScreen.js';
 import UpdatesScreen from './src/screens/UpdatesScreen.js';
 import { UserProvider } from './src/context/UserContext';
 import { ItemsProvider } from './src/context/ItemsContext';
+import ItemAnalyticsScreen from './src/screens/ItemAnalyticsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -51,6 +52,7 @@ export default function App() {
             <Stack.Screen name="PotentialIncome" component={PotentialIncomeScreen} />
             <Stack.Screen name="YourItems" component={YourItemsScreen} />
             <Stack.Screen name="Updates" component={UpdatesScreen} />
+            <Stack.Screen name="ItemAnalytics" component={ItemAnalyticsScreen} options={{ headerShown: false }}/>
           </Stack.Navigator>
         </NavigationContainer>
       </ItemsProvider>
